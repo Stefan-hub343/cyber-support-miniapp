@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { useTonWallet, useTonConnectUI } from '@tonconnect/ui-react'; // Удален неиспользуемый TonConnectButton
+import { useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
 
 const WalletContainer = styled.div`
   display: flex;
@@ -109,7 +109,7 @@ const TonConnect: React.FC<TonConnectProps> = ({ onClose, onSuccess }) => {
   const [sending, setSending] = useState(false);
   const [connectionRestored, setConnectionRestored] = useState(false);
 
-  // ВНИМАНИЕ: ЗАМЕНИ НА СВОЙ АДРЕС КОШЕЛЬКА
+  // ✅ ТВОЙ ПРАВИЛЬНЫЙ АДРЕС КОШЕЛЬКА
   const RECIPIENT_ADDRESS = 'UQBX5kKdfM_OnE3H-HWkgYEIi1AO_xOtJL3_6NK65KQykpWc';
 
   useEffect(() => {
@@ -125,7 +125,7 @@ const TonConnect: React.FC<TonConnectProps> = ({ onClose, onSuccess }) => {
 
   useEffect(() => {
     console.log('🔧 TON Connect UI initialized');
-    // @ts-ignore - получаем manifestUrl из конфига
+    // @ts-ignore
     console.log('📋 Manifest URL:', tonConnectUI.options?.manifestUrl);
     
     const checkConnection = async () => {
@@ -157,9 +157,25 @@ const TonConnect: React.FC<TonConnectProps> = ({ onClose, onSuccess }) => {
 
     try {
       setSending(true);
-      // Конвертируем TON в наноTON (1 TON = 1,000,000,000 наноTON)
-      const amountInNano = (parseFloat(amount) * 1000000000).toString();
       
+      // Проверяем сумму
+      const amountNum = parseFloat(amount);
+      if (isNaN(amountNum) || amountNum < 0.1) {
+        alert('Минимальная сумма: 0.1 TON');
+        setSending(false);
+        return;
+      }
+
+      // Конвертируем TON в наноTON (1 TON = 1,000,000,000 наноTON)
+      const amountInNano = (amountNum * 1000000000).toString();
+      
+      console.log('💰 Отправка:', {
+        amount: amountNum,
+        amountInNano: amountInNano,
+        recipient: RECIPIENT_ADDRESS,
+        validUntil: Math.floor(Date.now() / 1000) + 600
+      });
+
       const transaction = {
         validUntil: Math.floor(Date.now() / 1000) + 600, // 10 минут
         messages: [
@@ -185,15 +201,33 @@ const TonConnect: React.FC<TonConnectProps> = ({ onClose, onSuccess }) => {
       setTimeout(onClose, 2000);
       
     } catch (error: any) {
-      console.error('❌ Ошибка отправки:', error);
-      
-      // Проверяем, не отменил ли пользователь транзакцию
-      if (error?.message?.includes('rejected') || error?.message?.includes('cancelled')) {
-        alert('Транзакция отклонена в кошельке.');
-      } else if (error?.message?.includes('balance')) {
-        alert('Недостаточно средств на балансе кошелька.');
+      // 🔍 ПОДРОБНОЕ ЛОГИРОВАНИЕ ОШИБКИ
+      console.error('❌ ДЕТАЛЬНАЯ ОШИБКА ОТПРАВКИ:', {
+        message: error?.message,
+        response: error?.response,
+        stack: error?.stack,
+        fullError: error,
+        type: typeof error,
+        stringified: JSON.stringify(error, null, 2)
+      });
+
+      // Проверяем разные типы ошибок
+      const errorMsg = error?.message?.toLowerCase() || '';
+      const errorStr = JSON.stringify(error).toLowerCase();
+
+      if (errorMsg.includes('rejected') || errorMsg.includes('cancelled') || errorStr.includes('rejected')) {
+        alert('❌ Транзакция отклонена в кошельке.');
+      } else if (errorMsg.includes('balance') || errorMsg.includes('insufficient') || errorStr.includes('insufficient funds')) {
+        alert('❌ Недостаточно средств на балансе кошелька.');
+      } else if (errorMsg.includes('timeout') || errorMsg.includes('expired')) {
+        alert('❌ Время ожидания транзакции истекло. Попробуйте снова.');
+      } else if (errorMsg.includes('network') || errorStr.includes('network')) {
+        alert('❌ Ошибка сети. Проверьте подключение к интернету.');
+      } else if (errorMsg.includes('address') || errorStr.includes('address') || errorStr.includes('recipient')) {
+        alert('❌ Проблема с адресом получателя. Проверьте RECIPIENT_ADDRESS в коде.');
       } else {
-        alert('Ошибка при отправке транзакции. Попробуй снова.');
+        // Показываем реальную ошибку для диагностики
+        alert(`❌ Ошибка транзакции: ${error?.message || 'Неизвестная ошибка'}. Подробности в консоли (F12).`);
       }
     } finally {
       setSending(false);
