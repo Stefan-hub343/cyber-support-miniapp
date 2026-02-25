@@ -65,7 +65,7 @@ interface PaymentModalProps {
 }
 
 const PaymentModal: React.FC<PaymentModalProps> = ({ onClose, onSuccess }) => {
-  // === ТВОЯ РАБОЧАЯ ССЫЛКА НА МАНИФЕСТ ===
+  // Твоя ссылка на Gist с манифестом
   const manifestUrl = 'https://gist.githubusercontent.com/Stefan-hub343/fd12e2cb7e39098f2e7ad2e3e32ff926/raw/0525f45a9e74190d2adbb27bdfc4d45e30c60fad/tonconnect-manifest.json';
   
   const botUsername = 'baldezhniki_support_bot';
@@ -85,7 +85,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({ onClose, onSuccess }) => {
       .then(data => console.log('📥 Данные манифеста:', data))
       .catch(error => console.error('📥 Ошибка загрузки манифеста:', error));
       
-  }, []);
+  }, [manifestUrl, twaReturnUrl]); // ✅ Добавлены все зависимости
 
   return (
     <AnimatePresence>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { TonConnectButton, useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
+import { useTonWallet, useTonConnectUI } from '@tonconnect/ui-react'; // Удален неиспользуемый TonConnectButton
 
 const WalletContainer = styled.div`
   display: flex;
@@ -110,7 +110,7 @@ const TonConnect: React.FC<TonConnectProps> = ({ onClose, onSuccess }) => {
   const [connectionRestored, setConnectionRestored] = useState(false);
 
   // ВНИМАНИЕ: ЗАМЕНИ НА СВОЙ АДРЕС КОШЕЛЬКА
-  const RECIPIENT_ADDRESS = 'UQBX5kKdfM_OnE3H-HWkgYEIi1AO_xOtJL3_6NK65KQykpWc';
+  const RECIPIENT_ADDRESS = 'EQD...твой_кошелек_ton';
 
   useEffect(() => {
     console.log('👛 Wallet state:', wallet);
@@ -125,8 +125,7 @@ const TonConnect: React.FC<TonConnectProps> = ({ onClose, onSuccess }) => {
 
   useEffect(() => {
     console.log('🔧 TON Connect UI initialized');
-    // Получаем manifestUrl из конфига (другим способом)
-    // @ts-ignore - временно игнорируем ошибку типа
+    // @ts-ignore - получаем manifestUrl из конфига
     console.log('📋 Manifest URL:', tonConnectUI.options?.manifestUrl);
     
     const checkConnection = async () => {
@@ -185,9 +184,17 @@ const TonConnect: React.FC<TonConnectProps> = ({ onClose, onSuccess }) => {
       
       setTimeout(onClose, 2000);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Ошибка отправки:', error);
-      alert('Ошибка при отправке транзакции. Попробуй снова.');
+      
+      // Проверяем, не отменил ли пользователь транзакцию
+      if (error?.message?.includes('rejected') || error?.message?.includes('cancelled')) {
+        alert('Транзакция отклонена в кошельке.');
+      } else if (error?.message?.includes('balance')) {
+        alert('Недостаточно средств на балансе кошелька.');
+      } else {
+        alert('Ошибка при отправке транзакции. Попробуй снова.');
+      }
     } finally {
       setSending(false);
     }
@@ -203,9 +210,6 @@ const TonConnect: React.FC<TonConnectProps> = ({ onClose, onSuccess }) => {
           <div style={{ fontSize: '12px', color: '#666', textAlign: 'center' }}>
             {!connectionRestored ? '⏳ Восстановление соединения...' : '✅ Нажми кнопку для подключения'}
           </div>
-          
-          {/* Стандартная кнопка на всякий случай (раскомментируй если кастомная не работает) */}
-          {/* <TonConnectButton /> */}
         </>
       ) : (
         <>
