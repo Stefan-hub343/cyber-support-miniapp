@@ -216,5 +216,12 @@ const App: React.FC = () => {
     </>
   );
 };
+// В App.tsx можно добавить
+const [showThankYou, setShowThankYou] = useState(false);
+
+const handlePaymentSuccess = () => {
+  setShowThankYou(true);
+  setTimeout(() => setShowThankYou(false), 3000);
+};
 
 export default App;
