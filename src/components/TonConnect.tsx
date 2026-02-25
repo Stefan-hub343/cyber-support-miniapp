@@ -110,7 +110,7 @@ const TonConnect: React.FC<TonConnectProps> = ({ onClose, onSuccess }) => {
   const [connectionRestored, setConnectionRestored] = useState(false);
 
   // ВНИМАНИЕ: ЗАМЕНИ НА СВОЙ АДРЕС КОШЕЛЬКА
-  const RECIPIENT_ADDRESS = 'EQD...твой_кошелек_ton';
+  const RECIPIENT_ADDRESS = 'UQBX5kKdfM_OnE3H-HWkgYEIi1AO_xOtJL3_6NK65KQykpWc';
 
   useEffect(() => {
     console.log('👛 Wallet state:', wallet);
