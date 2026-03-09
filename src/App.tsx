@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import RobotMask from './components/RobotMask';
 import HologramButton from './components/HologramButton';
 import PaymentModal from './components/PaymentModal';
+import GameButton from './components/GameButton';
+import GameFarm from './components/GameFarm';
 
 const GlobalStyle = createGlobalStyle`
   * {
@@ -38,6 +40,14 @@ const GlobalStyle = createGlobalStyle`
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .game-button {
+    z-index: 10;
+  }
+  
+  .game-modal {
+    z-index: 1000;
   }
 `;
 
@@ -144,16 +154,32 @@ const SuccessMessage = styled(motion.div)`
 
 const App: React.FC = () => {
   const [showPayment, setShowPayment] = useState(false);
+  const [showGame, setShowGame] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [user, setUser] = useState<any>(null);
   
   useEffect(() => {
+    console.log('🔍 Проверка Telegram WebApp...');
+    console.log('📱 window.Telegram существует?', !!window.Telegram);
+    
     if (window.Telegram?.WebApp) {
+      console.log('✅ Telegram WebApp найден');
+      console.log('📊 initData:', window.Telegram.WebApp.initData);
+      console.log('📊 initDataUnsafe:', window.Telegram.WebApp.initDataUnsafe);
+      
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       
       const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
+      console.log('👤 Данные пользователя:', tgUser);
+      
       setUser(tgUser);
+      
+      if (!tgUser) {
+        console.log('⚠️ Пользователь не найден в initDataUnsafe');
+      }
+    } else {
+      console.log('❌ Telegram WebApp НЕ доступен');
     }
   }, []);
   
@@ -166,6 +192,9 @@ const App: React.FC = () => {
     <>
       <GlobalStyle />
       <Container>
+        {/* Кнопка игры (слева по центру) */}
+        <GameButton onClick={() => setShowGame(true)} />
+        
         <Header>
           <Title>Baldezhniki</Title>
           <Subtitle>▼ СИСТЕМА АКТИВНА ▼</Subtitle>
@@ -206,14 +235,25 @@ const App: React.FC = () => {
           )}
         </AnimatePresence>
         
-        {showPayment && (
-          <PaymentModal 
-            onClose={() => setShowPayment(false)} 
-            onSuccess={handlePaymentSuccess}
-          />
-        )}
+        {/* Модальное окно оплаты */}
+        <AnimatePresence>
+          {showPayment && (
+            <PaymentModal 
+              onClose={() => setShowPayment(false)} 
+              onSuccess={handlePaymentSuccess}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Модальное окно игры */}
+        <AnimatePresence>
+          {showGame && (
+            <GameFarm onClose={() => setShowGame(false)} />
+          )}
+        </AnimatePresence>
       </Container>
     </>
   );
 };
+
 export default App;
