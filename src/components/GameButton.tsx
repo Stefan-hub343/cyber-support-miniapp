@@ -7,7 +7,7 @@ const ButtonWrapper = styled(motion.div)`
   left: 20px;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 10;
+  z-index: 1000;
   cursor: pointer;
 `;
 
